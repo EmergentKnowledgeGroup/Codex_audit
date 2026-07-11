@@ -52,7 +52,9 @@ def find_session(selector: str, codex_home: Path) -> tuple[Path, str]:
 
 
 def readonly_connection(path: Path) -> sqlite3.Connection:
-    return sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
+    conn = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=5.0)
+    conn.execute("PRAGMA busy_timeout=5000")
+    return conn
 
 
 def table_columns(conn: sqlite3.Connection, table: str) -> set[str]:

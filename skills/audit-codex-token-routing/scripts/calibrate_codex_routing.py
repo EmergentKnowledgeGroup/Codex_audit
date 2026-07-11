@@ -34,6 +34,12 @@ DEFAULT_RATE_CARD = {
     },
 }
 VALID_OUTCOMES = {"accepted", "rejected", "partial", "blocked", "not_assessed"}
+ALLOWED_TABLES = {"threads", "thread_spawn_edges"}
+ALLOWED_TIMING_EXPRESSIONS = {
+    "COALESCE(t.created_at_ms,t.created_at*1000)", "t.created_at*1000",
+    "COALESCE(t.updated_at_ms,t.updated_at*1000)", "t.updated_at*1000",
+    "t.agent_path", "NULL",
+}
 
 
 def ref(thread_id: str, include_identifiers: bool) -> str:
@@ -41,6 +47,8 @@ def ref(thread_id: str, include_identifiers: bool) -> str:
 
 
 def db_columns(conn: sqlite3.Connection, table: str) -> set[str]:
+    if table not in ALLOWED_TABLES:
+        raise AUDIT.AuditError(f"Unexpected state table: {table}")
     return {str(row[1]) for row in conn.execute(f"PRAGMA table_info({table})")}
 
 
@@ -58,6 +66,8 @@ def discover_runs(root_id: str, state_db: Path) -> list[dict[str, Any]]:
         created = "COALESCE(t.created_at_ms,t.created_at*1000)" if "created_at_ms" in thread_cols else "t.created_at*1000"
         updated = "COALESCE(t.updated_at_ms,t.updated_at*1000)" if "updated_at_ms" in thread_cols else "t.updated_at*1000"
         agent_path = "t.agent_path" if "agent_path" in thread_cols else "NULL"
+        if {created, updated, agent_path} - ALLOWED_TIMING_EXPRESSIONS:
+            raise AUDIT.AuditError("Unexpected state timing expression")
         query = f"""
         WITH RECURSIVE tree(thread_id,parent_thread_id,depth,edge_status) AS (
           SELECT ?,NULL,0,'root'
@@ -86,11 +96,19 @@ def session_duration(path: Path) -> tuple[float | None, int]:
     last: datetime | None = None
     invalid = 0
     try:
-        with path.open(encoding="utf-8") as stream:
-            for line in stream:
+        with path.open("rb") as stream:
+            for raw_line in stream:
+                try:
+                    line = raw_line.decode("utf-8")
+                except UnicodeDecodeError:
+                    invalid += 1
+                    continue
                 try:
                     record = json.loads(line)
                 except json.JSONDecodeError:
+                    invalid += 1
+                    continue
+                if not isinstance(record, dict):
                     invalid += 1
                     continue
                 raw = record.get("timestamp")
@@ -102,7 +120,7 @@ def session_duration(path: Path) -> tuple[float | None, int]:
                     continue
                 first = first or timestamp
                 last = timestamp
-    except OSError:
+    except (OSError, UnicodeDecodeError):
         return None, invalid
     return ((last - first).total_seconds() if first and last else None), invalid
 

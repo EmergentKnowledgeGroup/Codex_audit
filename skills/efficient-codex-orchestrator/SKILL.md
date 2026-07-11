@@ -44,8 +44,9 @@ When topology 3 is justified:
 1. Spawn one Terra-high judgment manager with `fork_turns=none` and one bounded
    package. Use it when the Luna controller cannot safely interpret scope,
    reconcile changes, or perform the package's meaningful QA.
-2. Tell Terra to spawn at most two Luna workers unless verified runtime capacity
-   permits more. Require an explicit model and effort on every spawn: low for
+2. Tell Terra to spawn at most four Luna workers, with two as the default and
+   more than two only when verified runtime capacity and separate ownership
+   justify it. Require an explicit model and effort on every spawn: low for
    mechanical lookup/extraction/inventory, medium only for exact mechanical code
    edits with deterministic tests, high for normal bounded coding/tracing, and
    xhigh only for one difficult bounded task after lower effort proves

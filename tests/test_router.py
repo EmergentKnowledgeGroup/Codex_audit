@@ -70,6 +70,11 @@ class RouterTests(unittest.TestCase):
                          ("gpt-5.6-sol", "high"))
 
     def test_children_are_capped(self):
+        result = ROUTER.recommend(args(parallel_parts=8, max_children=8))
+        self.assertEqual(result["subagents"], 4)
+        self.assertEqual(result["fork_turns"], "none")
+
+    def test_children_default_cap_remains_two(self):
         result = ROUTER.recommend(args(parallel_parts=5, max_children=2))
         self.assertEqual(result["subagents"], 2)
         self.assertEqual(result["fork_turns"], "none")

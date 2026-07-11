@@ -1,7 +1,10 @@
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,6 +59,35 @@ class MonitorTests(unittest.TestCase):
             MON.atomic_write(path, "two")
             self.assertEqual(path.read_text(), "two")
             self.assertFalse(path.with_name(path.name + ".tmp").exists())
+
+    def test_refresh_failure_preserves_artifacts_and_records_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td)
+            report = output / "current-report.md"
+            dashboard = output / "dashboard.html"
+            report.write_text("last good report", encoding="utf-8")
+            dashboard.write_text("last good dashboard", encoding="utf-8")
+            argv = ["monitor_codex_routing.py", "--current", "--output-dir", str(output), "--once"]
+            with patch.object(MON, "collect", side_effect=MON.CAL.AUDIT.AuditError("simulated refresh failure")):
+                with patch.object(sys, "argv", argv):
+                    with self.assertRaises(SystemExit) as raised:
+                        MON.main()
+            self.assertEqual(raised.exception.code, 2)
+            self.assertEqual(report.read_text(encoding="utf-8"), "last good report")
+            self.assertEqual(dashboard.read_text(encoding="utf-8"), "last good dashboard")
+            status = json.loads((output / "monitor-status.json").read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "error")
+            self.assertIn("simulated refresh failure", status["last_error"])
+
+    def test_monitor_rejects_output_collision_with_input(self):
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td)
+            args = SimpleNamespace(output_dir=output, interval=30, once=True)
+            protected = {output.resolve() / "current-agent.json"}
+            with patch.object(MON, "collect", return_value=(document(), MON.compact(document()), protected)):
+                with self.assertRaises(MON.CAL.AUDIT.AuditError):
+                    MON.write_cycle(args, 1)
+            self.assertFalse((output / "current-agent.json").exists())
 
 
 if __name__ == "__main__":

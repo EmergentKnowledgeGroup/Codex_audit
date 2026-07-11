@@ -73,6 +73,14 @@ def fixture(root: Path):
 
 
 class CalibrationTests(unittest.TestCase):
+    def test_session_duration_skips_non_object_and_bad_encoding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "malformed.jsonl"
+            path.write_bytes(b"[]\n{\"timestamp\":\"2026-01-01T00:00:00Z\"}\n\xff")
+            duration, invalid = CAL.session_duration(path)
+            self.assertEqual(duration, 0.0)
+            self.assertEqual(invalid, 2)
+
     def test_gpt_56_alias_uses_sol_rate(self):
         usage = {"input_tokens": 1000, "cached_input_tokens": 0, "output_tokens": 0}
         self.assertEqual(CAL.credit_estimate(usage, "gpt-5.6", CAL.DEFAULT_RATE_CARD), 0.125)
@@ -132,6 +140,15 @@ class CalibrationTests(unittest.TestCase):
         output = CAL.markdown(document)
         self.assertIn("# Codex routing calibration", output)
         self.assertIn("never inferred", output)
+
+    def test_db_columns_rejects_unexpected_identifier(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = sqlite3.connect(Path(tmp) / "state.sqlite")
+            try:
+                with self.assertRaises(CAL.AUDIT.AuditError):
+                    CAL.db_columns(db, "threads; DROP TABLE threads")
+            finally:
+                db.close()
 
 
 if __name__ == "__main__":

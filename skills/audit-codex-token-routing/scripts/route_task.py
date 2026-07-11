@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 
+MAX_CHILDREN = 4
 
 def recommend(args: argparse.Namespace) -> dict[str, object]:
     reasons: list[str] = []
@@ -42,7 +43,7 @@ def recommend(args: argparse.Namespace) -> dict[str, object]:
         warnings.append("Define acceptance evidence before increasing effort or fan-out.")
 
     independent = args.parallel_parts >= 2 and not args.shared_writes
-    child_count = min(args.parallel_parts, args.max_children) if independent else 0
+    child_count = min(args.parallel_parts, args.max_children, MAX_CHILDREN) if independent else 0
     child_route = None
     if child_count:
         if work_type in {"inventory", "extraction"} and args.clarity == 2:
@@ -97,8 +98,8 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.parallel_parts < 0:
         parser.error("--parallel-parts must be >= 0")
-    if not 0 <= args.max_children <= 8:
-        parser.error("--max-children must be between 0 and 8")
+    if not 0 <= args.max_children <= MAX_CHILDREN:
+        parser.error(f"--max-children must be between 0 and {MAX_CHILDREN}")
     return args
 
 
