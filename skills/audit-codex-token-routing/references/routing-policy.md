@@ -17,14 +17,17 @@ Assess:
 
 | Work shape | Starting route | Escalate only when |
 |---|---|---|
-| Clear extraction, inventory, formatting | Luna medium | edge cases fail validation |
-| Isolated fix with strong tests | Luna high or Terra medium | acceptance fails |
-| Normal subsystem implementation | Terra medium | cross-module reasoning is material |
-| Cross-module debugging or migration | Terra high | contradictory evidence needs judgment |
-| Architecture, security, release decision | Sol high | one bounded xhigh pass shows measured gain |
+| Mechanical lookup, extraction, inventory | Luna low | edge cases or interpretation fail |
+| Ordinary implementation or tracing | Luna high | depth or tradeoffs require Terra medium |
+| Scope interpretation, reconciliation, meaningful integration QA | Terra high | evidence conflicts or blast radius is material |
+| Judgment-oriented QA/review | Sol low | architecture, security, release, or conflicting evidence appears |
+| Architecture, security, release, conflicting-evidence judgment | Sol high | one bounded xhigh pass shows measured gain |
 
-Use the lowest effort that passes the task's acceptance bar. Escalate one axis at
-a time: effort, then model, then delegation.
+Use the lowest effort that passes the task's acceptance bar. Ordinary ambiguity
+is a Terra problem, not an automatic Sol escalation. For clear, spec-gated work,
+Luna-xhigh is the permitted control-plane route; do not use it as a reason to
+make every worker xhigh. For worker work, escalate one axis at a time: effort,
+then model, then delegation.
 
 ## Delegation gate
 
@@ -47,6 +50,20 @@ Treat these as local test thresholds, not product limits:
   work.
 
 Compare these thresholds with the user's own success and usage data.
+
+## Calibration loop
+
+At a meaningful phase boundary—not after every tool call:
+
+1. Capture a redacted calibration snapshot.
+2. Record acceptance, rework, and defects in the explicit ledger.
+3. Group only equivalent task families and matched pairs.
+4. Compare estimated credits per accepted task, duration, rework, and defects.
+5. Change one routing axis and rerun the same rubric.
+6. Keep recommendations exploratory until repeated matched trials support them.
+
+Automatic additional-turn counts are rework proxies only. The ledger is the
+authority for actual acceptance and rework.
 
 ## Recommendation format
 

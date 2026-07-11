@@ -20,6 +20,9 @@ def args(**overrides):
         "parallel_parts": 0,
         "max_children": 2,
         "repeatable": False,
+        "work_type": "implementation",
+        "role": "worker",
+        "spec_gated": False,
         "shared_writes": False,
     }
     values.update(overrides)
@@ -27,10 +30,34 @@ def args(**overrides):
 
 
 class RouterTests(unittest.TestCase):
-    def test_clear_repeatable_isolated_uses_luna_medium(self):
+    def test_clear_ordinary_implementation_uses_luna_high(self):
         result = ROUTER.recommend(args(clarity=2, blast=0, repeatable=True))
         self.assertEqual((result["model"], result["reasoning_effort"]),
-                         ("gpt-5.6-luna", "medium"))
+                         ("gpt-5.6-luna", "high"))
+
+    def test_inventory_uses_luna_low(self):
+        result = ROUTER.recommend(args(work_type="inventory", clarity=2, blast=0, judgment=0))
+        self.assertEqual((result["model"], result["reasoning_effort"]),
+                         ("gpt-5.6-luna", "low"))
+
+    def test_spec_gated_controller_uses_luna_xhigh(self):
+        result = ROUTER.recommend(args(role="controller", spec_gated=True, clarity=2, blast=2, judgment=0))
+        self.assertEqual((result["model"], result["reasoning_effort"]),
+                         ("gpt-5.6-luna", "xhigh"))
+
+    def test_integration_qa_uses_terra_high(self):
+        result = ROUTER.recommend(args(work_type="integration_qa", clarity=2, blast=1, judgment=0))
+        self.assertEqual((result["model"], result["reasoning_effort"]),
+                         ("gpt-5.6-terra", "high"))
+
+    def test_non_material_ambiguity_does_not_escalate_to_sol(self):
+        result = ROUTER.recommend(args(clarity=0, blast=1, judgment=0))
+        self.assertEqual(result["model"], "gpt-5.6-terra")
+
+    def test_judgment_qa_uses_sol_low(self):
+        result = ROUTER.recommend(args(work_type="qa", clarity=2, blast=0, judgment=0))
+        self.assertEqual((result["model"], result["reasoning_effort"]),
+                         ("gpt-5.6-sol", "low"))
 
     def test_cross_module_tradeoff_uses_terra_high(self):
         result = ROUTER.recommend(args(blast=2, judgment=1))
@@ -43,6 +70,11 @@ class RouterTests(unittest.TestCase):
                          ("gpt-5.6-sol", "high"))
 
     def test_children_are_capped(self):
+        result = ROUTER.recommend(args(parallel_parts=8, max_children=8))
+        self.assertEqual(result["subagents"], 4)
+        self.assertEqual(result["fork_turns"], "none")
+
+    def test_children_default_cap_remains_two(self):
         result = ROUTER.recommend(args(parallel_parts=5, max_children=2))
         self.assertEqual(result["subagents"], 2)
         self.assertEqual(result["fork_turns"], "none")

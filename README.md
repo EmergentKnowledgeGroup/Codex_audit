@@ -11,6 +11,12 @@ compaction, and repeated cached input.
 It **does not** change your model, edit `config.toml` or `AGENTS.md`, modify your
 codebase, close agents, or enforce a routing policy. You review every proposal.
 
+The repository contains three installable skills:
+
+- **Audit** (`audit-codex-token-routing`) diagnoses usage and calibrates routes.
+- **Orchestrate** (`efficient-codex-orchestrator`) delegates with explicit model, effort, scope, and QA contracts.
+- **Monitor** (`monitor-codex-token-routing`) continuously refreshes compact agent signals and live human reports.
+
 ## Why this exists
 
 Long agentic tasks can consume far more usage than their final answer suggests.
@@ -105,6 +111,82 @@ python skills/audit-codex-token-routing/scripts/route_task.py `
 
 This prints a recommendation. It does not apply it.
 
+## Calibrate a live orchestration workflow
+
+Create a redacted snapshot and a fill-in acceptance ledger:
+
+```powershell
+python skills/audit-codex-token-routing/scripts/calibrate_codex_routing.py `
+  --current `
+  --json-out calibration.json `
+  --markdown-out calibration.md `
+  --init-ledger calibration-ledger.json
+```
+
+The Markdown scorecard shows every root, manager, worker, and descendant with:
+
+- Explicit model and effort.
+- Final and gross tokens.
+- Estimated credits using the documented rate card.
+- Session duration and context pressure.
+- Compactions, tool calls, coordination cost, and retained output volume.
+- Additional-turn signals that may indicate follow-up or rework.
+
+Logs cannot determine whether an edit was correct. Fill the generated ledger
+with the task family, matched `pair_id`, outcome, actual rework rounds, defects,
+and optional quality score. Unassessed runs remain `not_assessed`; the script
+never converts `task_complete` into a quality claim.
+
+Rerun after more work:
+
+```powershell
+python skills/audit-codex-token-routing/scripts/calibrate_codex_routing.py `
+  --current `
+  --ledger calibration-ledger.json `
+  --baseline calibration.json `
+  --json-out calibration-next.json `
+  --markdown-out calibration-next.md
+```
+
+The new snapshot includes per-agent deltas, route cohorts within the same task
+family, matched comparisons, and recommendation text such as “the accepted
+Luna-high route used approximately X% fewer estimated credits than Terra-medium.”
+Those statements remain exploratory until repeated equivalent trials exist.
+
+Use `--rate-card your-rates.json` to replace the embedded rate card when Codex
+pricing changes. Calibration never changes routing or configuration itself.
+
+You can also ask the root orchestrator:
+
+```text
+Use $audit-codex-token-routing to calibrate this task now. Generate a redacted
+scorecard and acceptance ledger, explain which fields require my judgment, and
+recommend only the next matched routing experiment. Do not change routing or
+configuration automatically.
+```
+
+## Monitor a long-running task continuously
+
+```text
+Use $monitor-codex-token-routing to monitor this task in the background. Keep
+the output redacted and advisory. Read only the compact agent snapshot at
+routing decision boundaries, and show me the human report or dashboard when I
+ask.
+```
+
+Or run it directly:
+
+```powershell
+python skills/monitor-codex-token-routing/scripts/monitor_codex_routing.py `
+  --current `
+  --output-dir runtime/codex-routing
+```
+
+It atomically refreshes `current-agent.json`, `current-report.md`,
+`dashboard.html`, `calibration.json`, and `monitor-status.json`. The dashboard
+self-refreshes locally; it starts no server and uploads no telemetry. Stop with
+Ctrl-C. Use `--once` to test without leaving a watcher running.
+
 ## What the report measures
 
 - Root input, cached input, output, and reasoning-output tokens.
@@ -113,6 +195,8 @@ This prints a recommendation. It does not apply it.
 - Spawn attempts, history-fork choices, compactions, and aborted turns.
 - Token usage associated with tool and coordination actions.
 - Tool-result volume and inter-agent metadata.
+- Per-agent and full-descendant calibration scorecards with optional acceptance
+  and rework evidence.
 
 These are local diagnostic records, not an invoice. Codex internals and schemas
 can change. Five-hour and weekly allowance behavior can also depend on model,
@@ -123,7 +207,7 @@ context, reasoning, tools, retrieval, caching, and plan rules.
 The skill must inspect the user's actual task and codebase before recommending:
 
 - Luna, Terra, or Sol.
-- Medium, high, or xhigh reasoning.
+- Low, medium, high, or xhigh reasoning.
 - Single-agent versus delegated work.
 - Child count and lifecycle.
 - Context/compaction strategy.
@@ -134,20 +218,21 @@ It must never silently edit global instructions or model configuration.
 
 ## Experimental hierarchical routing
 
-A promising pattern for large, QA-heavy workloads is:
+A promising center-out pattern for spec-gated, QA-heavy workloads is:
 
 ```text
-Sol-high control agent
-  -> Terra-high manager for one bounded package
-       -> 2-4 Luna workers with crisp tasks
+Luna-xhigh control agent
+  -> Terra-high manager only when scope/reconciliation/meaningful QA needs judgment
+       -> 2 Luna workers by default; up to 4 only with verified capacity
        -> Terra validates and allows at most one rework round
-  -> Terra returns a compact evidence packet
-  -> Sol performs final decision/integration
+  -> Sol-low performs judgment-oriented QA when needed
+  -> Sol-high handles material architecture, security, release, or conflicting evidence
 ```
 
 This can reduce **weighted credit usage** even when it increases raw tokens,
 because current published rates price Terra at roughly half of Sol and Luna at
-roughly one-fifth. It can also fail spectacularly if workers duplicate work,
+roughly two-fifths of Terra. It can also fail spectacularly if the controller
+misreads scope, workers duplicate work,
 inherit large histories, loop on QA, or remain alive across phases.
 
 Read [the hierarchical-routing guide](skills/audit-codex-token-routing/references/hierarchical-routing.md)
@@ -178,12 +263,17 @@ skills/audit-codex-token-routing/
   SKILL.md
   agents/openai.yaml
   scripts/analyze_codex_tokens.py
+  scripts/calibrate_codex_routing.py
   scripts/route_task.py
   references/routing-policy.md
   references/hierarchical-routing.md
 skills/efficient-codex-orchestrator/
   SKILL.md
   references/manager-worker-contract.md
+examples/agents/luna-controller.toml
+skills/monitor-codex-token-routing/
+  SKILL.md
+  scripts/monitor_codex_routing.py
 examples/
 tests/
 ```
@@ -193,6 +283,9 @@ tests/
 Early public release. The analyzer is intentionally conservative and supports
 the current local Codex session/state formats. Please open an issue with a
 redacted reproduction if a newer Codex version changes those formats.
+
+See [PATCH_NOTES.md](PATCH_NOTES.md) for the current release and monitor/routing
+behavior changes.
 
 ## License
 
