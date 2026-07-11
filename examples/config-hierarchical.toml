@@ -1,0 +1,9 @@
+# Merge intentionally into ~/.codex/config.toml; do not copy blindly.
+# Depth 2 enables root -> manager -> worker. Keep depth 1 when hierarchy is not in use.
+
+[features]
+multi_agent = true
+
+[agents]
+max_depth = 2
+max_threads = 4

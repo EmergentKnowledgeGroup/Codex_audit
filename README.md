@@ -1,0 +1,199 @@
+# Codex Audit
+
+Find out why a Codex task consumed so much of your five-hour or weekly usage,
+then get recommendations tailored to your work—not a universal routing chart.
+
+Codex Audit is a read-only, recommendation-only skill and local analyzer. It
+uses the usage records already stored by Codex Desktop/CLI to show where tokens
+went: parent context, subagents, model/effort selection, polling, tool output,
+compaction, and repeated cached input.
+
+It **does not** change your model, edit `config.toml` or `AGENTS.md`, modify your
+codebase, close agents, or enforce a routing policy. You review every proposal.
+
+## Why this exists
+
+Long agentic tasks can consume far more usage than their final answer suggests.
+The expensive part is often not prose; it is repeatedly sending large
+conversation history, tool results, and agent coordination back through a
+model. Subagents can improve focus and wall-clock speed, but every child has its
+own context and tool work.
+
+GPT-5.6 is documented as output-token-efficient. That is not a promise that
+every long Codex workflow uses fewer total tokens than GPT-5.5. This tool helps
+you measure your actual workload before changing models or instructions.
+
+## Fastest installation: ask Codex
+
+Open a Codex task and paste:
+
+```text
+Use $skill-installer to install the skill from
+https://github.com/EmergentKnowledgeGroup/Codex_audit/tree/main/skills/audit-codex-token-routing
+```
+
+Start a new task after installation so the skill is discovered.
+
+### Manual installation
+
+Clone the repository, then copy the skill directory into your personal Codex
+skills folder:
+
+```powershell
+git clone https://github.com/EmergentKnowledgeGroup/Codex_audit.git
+Copy-Item -Recurse -Force `
+  .\Codex_audit\skills\audit-codex-token-routing `
+  "$env:USERPROFILE\.codex\skills\audit-codex-token-routing"
+```
+
+On macOS or Linux:
+
+```bash
+git clone https://github.com/EmergentKnowledgeGroup/Codex_audit.git
+cp -R Codex_audit/skills/audit-codex-token-routing ~/.codex/skills/
+```
+
+## Run it from Codex
+
+For the current task:
+
+```text
+Use $audit-codex-token-routing to audit this task's token and subagent usage.
+Inspect my codebase and task shape where useful, but make recommendations only.
+Do not change my configuration, instructions, agents, or repository.
+```
+
+For a past task, provide its task ID:
+
+```text
+Use $audit-codex-token-routing to audit task
+019xxxxxxxxxxxxxxxxxxxxxxxxxxxxx. Explain the biggest usage drivers and give
+codebase-specific routing experiments. Recommendations only.
+```
+
+The agent should run the analyzer, inspect the relevant codebase conventions and
+validation surfaces, and distinguish measured facts from hypotheses. A sprawling
+monorepo, an isolated bug fix, a security review, and a documentation pass should
+not receive the same recommendation.
+
+## Run the analyzer directly
+
+No third-party Python packages are required.
+
+```powershell
+python skills/audit-codex-token-routing/scripts/analyze_codex_tokens.py --current
+```
+
+Audit one or more saved task IDs:
+
+```powershell
+python skills/audit-codex-token-routing/scripts/analyze_codex_tokens.py `
+  019xxxxxxxxxxxxxxxxxxxxxxxxxxxxx `
+  019yyyyyyyyyyyyyyyyyyyyyyyyyyyyy `
+  --out audit-results.json
+```
+
+The default report redacts task titles, codebase paths, usernames, and full
+session paths. Use `--include-identifiers` only for a private local report.
+
+Generate a provisional route recommendation:
+
+```powershell
+python skills/audit-codex-token-routing/scripts/route_task.py `
+  --clarity 2 --blast 1 --judgment 0 --validation 2 --repeatable
+```
+
+This prints a recommendation. It does not apply it.
+
+## What the report measures
+
+- Root input, cached input, output, and reasoning-output tokens.
+- Latest and peak context pressure.
+- Durable child count and child usage by model/effort.
+- Spawn attempts, history-fork choices, compactions, and aborted turns.
+- Token usage associated with tool and coordination actions.
+- Tool-result volume and inter-agent metadata.
+
+These are local diagnostic records, not an invoice. Codex internals and schemas
+can change. Five-hour and weekly allowance behavior can also depend on model,
+context, reasoning, tools, retrieval, caching, and plan rules.
+
+## Adaptive recommendations, not one-size-fits-all rules
+
+The skill must inspect the user's actual task and codebase before recommending:
+
+- Luna, Terra, or Sol.
+- Medium, high, or xhigh reasoning.
+- Single-agent versus delegated work.
+- Child count and lifecycle.
+- Context/compaction strategy.
+- A controlled A/B test and acceptance criteria.
+
+It must explain uncertainty and offer the smallest reversible experiment first.
+It must never silently edit global instructions or model configuration.
+
+## Experimental hierarchical routing
+
+A promising pattern for large, QA-heavy workloads is:
+
+```text
+Sol-high control agent
+  -> Terra-high manager for one bounded package
+       -> 2-4 Luna workers with crisp tasks
+       -> Terra validates and allows at most one rework round
+  -> Terra returns a compact evidence packet
+  -> Sol performs final decision/integration
+```
+
+This can reduce **weighted credit usage** even when it increases raw tokens,
+because current published rates price Terra at roughly half of Sol and Luna at
+roughly one-fifth. It can also fail spectacularly if workers duplicate work,
+inherit large histories, loop on QA, or remain alive across phases.
+
+Read [the hierarchical-routing guide](skills/audit-codex-token-routing/references/hierarchical-routing.md)
+before trying it. Treat it as an experiment, not a default.
+
+The repository also includes the optional
+[`efficient-codex-orchestrator`](skills/efficient-codex-orchestrator/SKILL.md)
+skill. To make it apply automatically to broad project work without prompting it
+every time, install that skill and merge the compact rule set in
+[`examples/global-agents-subagent-section.md`](examples/global-agents-subagent-section.md)
+into your global `AGENTS.md`. Review the example first; nothing in this repository
+edits global configuration automatically.
+
+## Privacy and safety
+
+- Analysis stays local unless you choose to share the output.
+- Default JSON output is redacted, but task IDs and usage totals remain.
+- Never publish private audit JSON without reviewing it.
+- Do not delete session JSONL or SQLite databases as part of an audit.
+- Do not treat token totals as exact billing or guaranteed allowance accounting.
+- Do not let the skill alter a user's codebase or configuration unless the user
+  separately and explicitly requests that change.
+
+## Repository structure
+
+```text
+skills/audit-codex-token-routing/
+  SKILL.md
+  agents/openai.yaml
+  scripts/analyze_codex_tokens.py
+  scripts/route_task.py
+  references/routing-policy.md
+  references/hierarchical-routing.md
+skills/efficient-codex-orchestrator/
+  SKILL.md
+  references/manager-worker-contract.md
+examples/
+tests/
+```
+
+## Status
+
+Early public release. The analyzer is intentionally conservative and supports
+the current local Codex session/state formats. Please open an issue with a
+redacted reproduction if a newer Codex version changes those formats.
+
+## License
+
+MIT

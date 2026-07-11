@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Codex Token Routing"
+  short_description: "Audit Codex usage and recommend adaptive routing"
+  default_prompt: "Use $audit-codex-token-routing to audit my Codex task usage and recommend evidence-based model, effort, context, and subagent changes without modifying my configuration."
