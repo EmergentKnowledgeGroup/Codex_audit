@@ -3,12 +3,12 @@
 ## Proposed pipeline
 
 ```text
-Sol-high control agent
-  -> Terra-high manager for one bounded work package
+Luna-xhigh control agent (clear contract + measurable acceptance)
+  -> Terra-high manager only when judgment/reconciliation/meaningful QA is needed
        -> 2 Luna workers by default; up to 4 only with verified capacity
        -> Terra validates evidence and permits at most one rework round
-  -> Terra returns a concise evidence packet
-  -> Sol decides, integrates, and communicates
+  -> Sol-low performs judgment-oriented QA when required
+  -> Sol-high decides only on architecture, security, release, or conflicting evidence
 ```
 
 This optimizes weighted usage and role separation, not raw token count.
@@ -40,10 +40,12 @@ real trial.
 - Give the Terra manager one package, one evidence contract, and one QA rubric.
 - Give each Luna worker an explicit `gpt-5.6-luna` model, explicit effort,
   `fork_turns=none`, separate ownership, deterministic validation, and a concise
-  structured return. Use medium for exact mechanical edits, high for normal
-  bounded coding, and xhigh only after a measured high-effort miss.
+  structured return. Use low for mechanical lookup/extraction/inventory, high
+  for ordinary implementation/tracing, and xhigh only after a measured lower-
+  effort miss.
 - Allow one rework round maximum. A failed second QA ends the package and returns
-  the blocker to Sol.
+  the blocker to the Luna controller/root. Escalate to Sol only if the blocker
+  is material architecture, security, release, or conflicting-evidence judgment.
 - Close all Luna workers after handoff, then close Terra after its packet is
   accepted.
 - Prevent Luna workers from spawning children.
@@ -74,15 +76,17 @@ The Terra manager must:
 5. Permit at most one targeted rework.
 6. Return a compact packet: decision, evidence, validations, unresolved risks,
    artifact paths, and recommended Sol action.
-7. Terminate after the packet is accepted.
+7. Terminate after the packet is accepted. Recommend a controller/root action;
+   mention Sol only when the escalation gate is actually met.
 
 ## Benchmark
 
 Run the same pinned task in randomized order:
 
 - A: Sol-high alone.
-- B: Sol-high plus direct Luna workers.
-- C: Sol-high -> Terra-high manager -> Luna workers.
+- B: Luna-xhigh control plane plus direct Luna workers.
+- C: Luna-xhigh -> Terra-high judgment manager -> Luna workers, with Sol-low QA
+  only where the acceptance decision requires it.
 
 Record total and weighted tokens, wall time, acceptance, defects, rework,
 compactions, child count, polling, and parent synthesis turns. Adopt C only when

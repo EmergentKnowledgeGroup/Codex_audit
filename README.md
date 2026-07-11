@@ -207,7 +207,7 @@ context, reasoning, tools, retrieval, caching, and plan rules.
 The skill must inspect the user's actual task and codebase before recommending:
 
 - Luna, Terra, or Sol.
-- Medium, high, or xhigh reasoning.
+- Low, medium, high, or xhigh reasoning.
 - Single-agent versus delegated work.
 - Child count and lifecycle.
 - Context/compaction strategy.
@@ -218,20 +218,21 @@ It must never silently edit global instructions or model configuration.
 
 ## Experimental hierarchical routing
 
-A promising pattern for large, QA-heavy workloads is:
+A promising center-out pattern for spec-gated, QA-heavy workloads is:
 
 ```text
-Sol-high control agent
-  -> Terra-high manager for one bounded package
+Luna-xhigh control agent
+  -> Terra-high manager only when scope/reconciliation/meaningful QA needs judgment
        -> 2 Luna workers by default; up to 4 only with verified capacity
        -> Terra validates and allows at most one rework round
-  -> Terra returns a compact evidence packet
-  -> Sol performs final decision/integration
+  -> Sol-low performs judgment-oriented QA when needed
+  -> Sol-high handles material architecture, security, release, or conflicting evidence
 ```
 
 This can reduce **weighted credit usage** even when it increases raw tokens,
 because current published rates price Terra at roughly half of Sol and Luna at
-roughly one-fifth. It can also fail spectacularly if workers duplicate work,
+roughly two-fifths of Terra. It can also fail spectacularly if the controller
+misreads scope, workers duplicate work,
 inherit large histories, loop on QA, or remain alive across phases.
 
 Read [the hierarchical-routing guide](skills/audit-codex-token-routing/references/hierarchical-routing.md)
@@ -269,6 +270,10 @@ skills/audit-codex-token-routing/
 skills/efficient-codex-orchestrator/
   SKILL.md
   references/manager-worker-contract.md
+examples/agents/luna-controller.toml
+skills/monitor-codex-token-routing/
+  SKILL.md
+  scripts/monitor_codex_routing.py
 examples/
 tests/
 ```

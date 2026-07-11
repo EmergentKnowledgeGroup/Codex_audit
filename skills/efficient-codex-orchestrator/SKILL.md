@@ -1,6 +1,6 @@
 ---
 name: efficient-codex-orchestrator
-description: Choose and operate the smallest effective Codex agent topology for complex repository work while preserving one stable parent task. Use automatically for broad multi-step implementation, audit, research, or QA work that may benefit from delegation, especially when the user wants a Sol orchestrator with Terra or Luna workers, lower five-hour usage, bounded child lifecycles, or context-efficient execution.
+description: Choose and operate a center-out Codex agent topology for spec-gated repository work while preserving one stable control task. Use automatically for broad implementation, audit, research, or QA work with clear contracts, checklists, blockerboards, or measurable acceptance criteria; route the control plane through Luna-xhigh, use Terra-high for judgment/integration, and escalate to Sol only for material architecture, security, release, or conflicting-evidence decisions.
 ---
 
 # Efficient Codex Orchestrator
@@ -14,16 +14,23 @@ new parent task merely because context was compacted.
 Use the least complex topology that fits:
 
 1. **Root only:** one causal chain, routine work, shared edits, or weak validation.
-2. **Root plus direct children:** 2-3 independent read-heavy or disjoint work
-   packages with crisp acceptance criteria.
-3. **Root -> Terra manager -> Luna workers:** several homogeneous, independently
-   testable packages where Terra can QA mechanically without Sol-level judgment.
+2. **Luna-xhigh control plane -> direct workers:** a clear spec, execution
+   checklist, blockerboard, measurable acceptance criteria, and independently
+   testable packages.
+3. **Luna-xhigh control plane -> Terra-high judgment manager -> Luna workers:**
+   several packages where the controller must interpret scope, reconcile
+   conflicting changes, or perform meaningful integration QA.
+4. **Sol specialist escalation:** material architecture, security, release, or
+   conflicting-evidence judgment. Do not make Sol the default controller merely
+   because the repository is large.
 
 Do not use hierarchy merely because cheaper models exist.
 
 ## Root responsibilities
 
-- Establish scope, acceptance, ownership, and stop conditions.
+- Establish scope, acceptance, ownership, and stop conditions. For a clear
+  spec-gated project, the control plane is Luna-xhigh; if the active parent is
+  already another model, do not restart solely to change the label.
 - Preserve decisions and evidence paths in the repository checkpoint.
 - Keep raw scans, logs, and repetitive testing below the root.
 - Perform final judgment only after receiving a compact evidence packet.
@@ -34,19 +41,42 @@ Do not use hierarchy merely because cheaper models exist.
 
 When topology 3 is justified:
 
-1. Spawn one Terra-high manager with `fork_turns=none` and one bounded package.
+1. Spawn one Terra-high judgment manager with `fork_turns=none` and one bounded
+   package. Use it when the Luna controller cannot safely interpret scope,
+   reconcile changes, or perform the package's meaningful QA.
 2. Tell Terra to spawn at most two Luna workers unless verified runtime capacity
-   permits more. Require an explicit model and effort on every spawn: medium for
-   mechanical edits with strong validation, high for normal bounded coding, and
-   xhigh only for a difficult bounded task whose quality gain will be measured.
+   permits more. Require an explicit model and effort on every spawn: low for
+   mechanical lookup/extraction/inventory, medium only for exact mechanical code
+   edits with deterministic tests, high for normal bounded coding/tracing, and
+   xhigh only for one difficult bounded task after lower effort proves
+   insufficient.
 3. Give workers separate ownership, exact validation, one return schema, and no
    permission to spawn descendants.
-4. Let Terra perform evidence-based QA and at most one targeted rework round.
+4. Let Terra perform integration and evidence-based QA, with at most one
+   targeted rework round. Use Sol-low for a final judgment-oriented QA pass when
+   the acceptance decision itself is consequential; deterministic tests do not
+   need Sol.
 5. Require Terra to return: decision, evidence, validations, unresolved risks,
    artifact paths, and recommended root action.
 6. Close workers after handoff and close Terra after accepting its packet.
 
 Do not let workers inherit the manager's model/effort implicitly.
+
+## Default route matrix
+
+Use the lowest route that can pass the explicit acceptance bar:
+
+| Work shape | Default route | Escalate when |
+|---|---|---|
+| Mechanical lookup, extraction, inventory | Luna-low | edge cases or interpretation fail |
+| Ordinary implementation or tracing | Luna-high | depth, cross-module reasoning, or tradeoffs require it; use Terra-medium |
+| Scope interpretation, reconciliation, meaningful integration QA | Terra-high | evidence conflicts or blast radius is material |
+| Judgment-oriented QA/review | Sol-low | the review exposes architecture, security, release, or conflicting-evidence judgment |
+| Architecture, security, release, conflicting evidence | Sol-high | one bounded xhigh pass shows a measured gain |
+
+Use xhigh only for one bounded pass after a lower effort proves insufficient.
+The Luna-xhigh control plane is the explicit exception for a clear, spec-gated
+project: do not fan out xhigh workers by default.
 
 After a bounded package or a small batch of comparable packages, have the root
 use the `audit-codex-token-routing` calibration script when installed. Running

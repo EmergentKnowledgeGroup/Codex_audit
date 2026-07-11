@@ -10,18 +10,33 @@ import json
 def recommend(args: argparse.Namespace) -> dict[str, object]:
     reasons: list[str] = []
     warnings: list[str] = []
+    work_type = getattr(args, "work_type", "implementation")
+    role = getattr(args, "role", "worker")
+    spec_gated = bool(getattr(args, "spec_gated", False))
 
-    if args.judgment == 2 or (args.clarity == 0 and args.blast >= 1):
+    if args.judgment == 2:
         model, effort = "gpt-5.6-sol", "high"
-        reasons.append("material judgment or unresolved ambiguity")
-    elif args.repeatable and args.clarity == 2 and args.blast == 0:
+        reasons.append("material architecture, security, release, or conflicting-evidence judgment")
+    elif role == "controller" and spec_gated and args.clarity == 2 and args.validation >= 1:
+        model, effort = "gpt-5.6-luna", "xhigh"
+        reasons.append("clear spec-gated control-plane work with measurable acceptance")
+    elif work_type == "qa":
+        model, effort = "gpt-5.6-sol", "low"
+        reasons.append("judgment-oriented QA/review pass")
+    elif work_type == "integration_qa":
+        model, effort = "gpt-5.6-terra", "high"
+        reasons.append("scope reconciliation or meaningful integration QA")
+    elif work_type in {"inventory", "extraction"} and args.clarity == 2 and args.blast == 0:
+        model, effort = "gpt-5.6-luna", "low"
+        reasons.append("clear mechanical lookup, extraction, or inventory")
+    elif args.clarity == 2 and args.blast == 0 and work_type in {"implementation", "tracing"}:
         model = "gpt-5.6-luna"
-        effort = "medium" if args.validation == 2 else "high"
-        reasons.append("clear, repeatable, isolated work")
+        effort = "high"
+        reasons.append("clear ordinary implementation or tracing")
     else:
         model = "gpt-5.6-terra"
         effort = "high" if args.blast == 2 or args.judgment == 1 else "medium"
-        reasons.append("ordinary multi-step work with tool use")
+        reasons.append("ordinary multi-step work with depth or tradeoffs")
 
     if args.validation == 0:
         warnings.append("Define acceptance evidence before increasing effort or fan-out.")
@@ -30,8 +45,15 @@ def recommend(args: argparse.Namespace) -> dict[str, object]:
     child_count = min(args.parallel_parts, args.max_children) if independent else 0
     child_route = None
     if child_count:
-        child_route = ("gpt-5.6-luna/high" if args.repeatable and args.clarity == 2
-                       and args.validation >= 1 else "gpt-5.6-terra/high")
+        if work_type in {"inventory", "extraction"} and args.clarity == 2:
+            child_route = "gpt-5.6-luna/low"
+        elif work_type == "integration_qa":
+            child_route = "gpt-5.6-terra/high"
+        elif work_type == "qa":
+            child_route = "gpt-5.6-sol/low"
+        else:
+            child_route = ("gpt-5.6-luna/high" if args.repeatable and args.clarity == 2
+                           and args.validation >= 1 else "gpt-5.6-terra/high")
     if args.parallel_parts >= 2 and args.shared_writes:
         warnings.append("Parallel workers suppressed because writes overlap.")
 
@@ -64,6 +86,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-children", type=int, default=2,
                         help="recommendation cap; default 2")
     parser.add_argument("--repeatable", action="store_true")
+    parser.add_argument("--work-type", choices=("inventory", "extraction", "implementation", "tracing", "qa", "integration_qa"),
+                        default="implementation",
+                        help="work shape; default implementation")
+    parser.add_argument("--role", choices=("controller", "worker"), default="worker",
+                        help="route role; controller requires --spec-gated")
+    parser.add_argument("--spec-gated", action="store_true",
+                        help="contract/checklist/blockerboard/acceptance criteria are explicit")
     parser.add_argument("--shared-writes", action="store_true")
     args = parser.parse_args()
     if args.parallel_parts < 0:

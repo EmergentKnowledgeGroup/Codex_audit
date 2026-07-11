@@ -17,14 +17,17 @@ Assess:
 
 | Work shape | Starting route | Escalate only when |
 |---|---|---|
-| Clear extraction, inventory, formatting | Luna medium | edge cases fail validation |
-| Isolated fix with strong tests | Luna high or Terra medium | acceptance fails |
-| Normal subsystem implementation | Terra medium | cross-module reasoning is material |
-| Cross-module debugging or migration | Terra high | contradictory evidence needs judgment |
-| Architecture, security, release decision | Sol high | one bounded xhigh pass shows measured gain |
+| Mechanical lookup, extraction, inventory | Luna low | edge cases or interpretation fail |
+| Ordinary implementation or tracing | Luna high | depth or tradeoffs require Terra medium |
+| Scope interpretation, reconciliation, meaningful integration QA | Terra high | evidence conflicts or blast radius is material |
+| Judgment-oriented QA/review | Sol low | architecture, security, release, or conflicting evidence appears |
+| Architecture, security, release, conflicting-evidence judgment | Sol high | one bounded xhigh pass shows measured gain |
 
-Use the lowest effort that passes the task's acceptance bar. Escalate one axis at
-a time: effort, then model, then delegation.
+Use the lowest effort that passes the task's acceptance bar. Ordinary ambiguity
+is a Terra problem, not an automatic Sol escalation. For clear, spec-gated work,
+Luna-xhigh is the permitted control-plane route; do not use it as a reason to
+make every worker xhigh. For worker work, escalate one axis at a time: effort,
+then model, then delegation.
 
 ## Delegation gate
 

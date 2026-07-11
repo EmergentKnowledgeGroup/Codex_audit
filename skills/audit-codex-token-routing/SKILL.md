@@ -50,3 +50,15 @@ titles, and working directories in the report.
 - Compare routes only within equivalent task families or explicit matched pairs.
   Observational averages are confounded because stronger models often receive
   harder work.
+
+## Center-out routing candidate
+
+For a clear project with an explicit specification, execution checklist,
+blockerboard, and measurable acceptance criteria, treat Luna-xhigh as the
+control-plane candidate. Route mechanical lookup/extraction/inventory to
+Luna-low, ordinary implementation/tracing to Luna-high, deeper tradeoffs to
+Terra-medium/high, judgment-oriented QA to Sol-low, and material
+architecture/security/release/conflicting-evidence judgment to Sol-high. Use
+xhigh only for one bounded pass after lower effort proves insufficient, except
+for the explicitly tested Luna-xhigh control-plane route; do not fan out xhigh
+workers by default.
