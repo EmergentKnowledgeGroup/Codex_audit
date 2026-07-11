@@ -92,6 +92,7 @@ def compact(document: dict) -> dict:
         "next_test": hypothesis.get("next_test", "Not available."),
         "comparison_blockers": hypothesis.get("blockers", []),
         "route_summary": document.get("route_summary", {}),
+        "baseline_loaded": bool(document.get("baseline_loaded")),
     }
 
 
@@ -130,8 +131,12 @@ def collect(args) -> tuple[dict, dict, set[Path]]:
     ledger = CAL.load_ledger(args.ledger)
     rates = CAL.load_rate_card(args.rate_card)
     runs, protected = CAL.make_runs(root, state, False, ledger, rates)
+    if args.baseline:
+        CAL.apply_baseline(runs, args.baseline)
     protected.update(
-        path.expanduser().resolve() for path in (args.ledger, args.rate_card) if path
+        path.expanduser().resolve()
+        for path in (args.ledger, args.baseline, args.rate_card)
+        if path
     )
     doc = {
         "schema_version": 1,
@@ -142,6 +147,7 @@ def collect(args) -> tuple[dict, dict, set[Path]]:
         "runs": runs,
         "cohorts": CAL.build_cohorts(runs),
         "paired_comparisons": CAL.build_pairs(runs),
+        "baseline_loaded": bool(args.baseline),
     }
     doc["route_summary"] = CAL.build_route_summary(runs)
     doc["recommendations"] = CAL.recommendations(doc["paired_comparisons"])
@@ -198,6 +204,7 @@ def main() -> None:
     p.add_argument("--codex-home", type=Path, default=CAL.AUDIT.default_codex_home())
     p.add_argument("--state-db", type=Path)
     p.add_argument("--ledger", type=Path)
+    p.add_argument("--baseline", type=Path)
     p.add_argument("--rate-card", type=Path)
     p.add_argument("--output-dir", type=Path, required=True)
     p.add_argument("--interval", type=int, default=30)

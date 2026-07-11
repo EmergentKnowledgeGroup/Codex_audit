@@ -13,7 +13,8 @@ python scripts/monitor_codex_routing.py --current --output-dir runtime/codex-rou
 ```
 
 Use a task UUID instead of `--current` when `CODEX_THREAD_ID` is unavailable.
-Add `--ledger calibration-ledger.json` for explicit acceptance/rework evidence.
+Add `--ledger calibration-ledger.json` for explicit acceptance/rework evidence
+and `--baseline prior-calibration.json` to expose phase-over-phase deltas.
 Use `--once` for CI, testing, or a manual refresh.
 
 The monitor atomically refreshes:

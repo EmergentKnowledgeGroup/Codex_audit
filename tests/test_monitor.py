@@ -43,6 +43,7 @@ class MonitorTests(unittest.TestCase):
         self.assertIn("comparison_status", snap)
         self.assertIn("working_hypothesis", snap)
         self.assertIn("next_test", snap)
+        self.assertFalse(snap["baseline_loaded"])
         self.assertNotIn("runs", snap)
         self.assertLess(len(json.dumps(snap)), 2000)
 

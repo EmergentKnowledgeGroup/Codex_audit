@@ -284,6 +284,9 @@ Early public release. The analyzer is intentionally conservative and supports
 the current local Codex session/state formats. Please open an issue with a
 redacted reproduction if a newer Codex version changes those formats.
 
+See [PATCH_NOTES.md](PATCH_NOTES.md) for the current release and monitor/routing
+behavior changes.
+
 ## License
 
 MIT
