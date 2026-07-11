@@ -35,14 +35,25 @@ Do not use hierarchy merely because cheaper models exist.
 When topology 3 is justified:
 
 1. Spawn one Terra-high manager with `fork_turns=none` and one bounded package.
-2. Tell Terra to spawn at most two Luna medium/high workers unless verified
-   runtime capacity permits more.
+2. Tell Terra to spawn at most two Luna workers unless verified runtime capacity
+   permits more. Require an explicit model and effort on every spawn: medium for
+   mechanical edits with strong validation, high for normal bounded coding, and
+   xhigh only for a difficult bounded task whose quality gain will be measured.
 3. Give workers separate ownership, exact validation, one return schema, and no
    permission to spawn descendants.
 4. Let Terra perform evidence-based QA and at most one targeted rework round.
 5. Require Terra to return: decision, evidence, validations, unresolved risks,
    artifact paths, and recommended root action.
 6. Close workers after handoff and close Terra after accepting its packet.
+
+Do not let workers inherit the manager's model/effort implicitly.
+
+After a bounded package or a small batch of comparable packages, have the root
+use the `audit-codex-token-routing` calibration script when installed. Running
+`--current` inside a manager would calibrate only that manager subtree. Capture
+the root scorecard once at the phase boundary; do not poll metrics after every call. Feed
+accepted/rework/rejected outcomes into its ledger, then adjust one routing axis
+only when matched evidence supports it.
 
 Read `references/manager-worker-contract.md` before using hierarchy.
 

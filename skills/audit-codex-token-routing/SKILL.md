@@ -10,6 +10,7 @@ Run the bundled analyzer before recommending changes:
 ```powershell
 python scripts/analyze_codex_tokens.py --current
 python scripts/analyze_codex_tokens.py <task-id> [<task-id> ...] --out audit.json
+python scripts/calibrate_codex_routing.py --current --markdown-out calibration.md --json-out calibration.json
 ```
 
 Use `--codex-home` for a non-default Codex home. Use
@@ -29,7 +30,10 @@ titles, and working directories in the report.
    relevant.
 5. Recommend the smallest reversible change and a paired test with acceptance
    criteria. Never present thresholds as universal truths.
-6. Keep the result advisory. Do not edit code, `AGENTS.md`, `config.toml`, agent
+6. For an active multi-agent workflow, run `calibrate_codex_routing.py` at a
+   phase boundary. Generate an acceptance ledger when outcomes/rework are not
+   already recorded; never infer quality from `task_complete`.
+7. Keep the result advisory. Do not edit code, `AGENTS.md`, `config.toml`, agent
    files, or task state unless the user separately requests implementation.
 
 ## Guardrails
@@ -43,3 +47,6 @@ titles, and working directories in the report.
   work, coordination, QA, rework, and context duplication.
 - Prefer repository evidence and controlled comparisons over a fixed routing
   infographic.
+- Compare routes only within equivalent task families or explicit matched pairs.
+  Observational averages are confounded because stronger models often receive
+  harder work.

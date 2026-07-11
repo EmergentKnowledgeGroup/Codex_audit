@@ -5,7 +5,7 @@
 ```text
 Sol-high control agent
   -> Terra-high manager for one bounded work package
-       -> 2-4 Luna workers
+       -> 2 Luna workers by default; up to 4 only with verified capacity
        -> Terra validates evidence and permits at most one rework round
   -> Terra returns a concise evidence packet
   -> Sol decides, integrates, and communicates
@@ -38,8 +38,10 @@ real trial.
   from spawning workers.
 - Cap total concurrent threads explicitly. Start with two Luna workers, not four.
 - Give the Terra manager one package, one evidence contract, and one QA rubric.
-- Give each Luna worker `fork_turns=none`, separate ownership, deterministic
-  validation, and a concise structured return.
+- Give each Luna worker an explicit `gpt-5.6-luna` model, explicit effort,
+  `fork_turns=none`, separate ownership, deterministic validation, and a concise
+  structured return. Use medium for exact mechanical edits, high for normal
+  bounded coding, and xhigh only after a measured high-effort miss.
 - Allow one rework round maximum. A failed second QA ends the package and returns
   the blocker to Sol.
 - Close all Luna workers after handoff, then close Terra after its packet is

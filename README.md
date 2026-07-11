@@ -105,6 +105,60 @@ python skills/audit-codex-token-routing/scripts/route_task.py `
 
 This prints a recommendation. It does not apply it.
 
+## Calibrate a live orchestration workflow
+
+Create a redacted snapshot and a fill-in acceptance ledger:
+
+```powershell
+python skills/audit-codex-token-routing/scripts/calibrate_codex_routing.py `
+  --current `
+  --json-out calibration.json `
+  --markdown-out calibration.md `
+  --init-ledger calibration-ledger.json
+```
+
+The Markdown scorecard shows every root, manager, worker, and descendant with:
+
+- Explicit model and effort.
+- Final and gross tokens.
+- Estimated credits using the documented rate card.
+- Session duration and context pressure.
+- Compactions, tool calls, coordination cost, and retained output volume.
+- Additional-turn signals that may indicate follow-up or rework.
+
+Logs cannot determine whether an edit was correct. Fill the generated ledger
+with the task family, matched `pair_id`, outcome, actual rework rounds, defects,
+and optional quality score. Unassessed runs remain `not_assessed`; the script
+never converts `task_complete` into a quality claim.
+
+Rerun after more work:
+
+```powershell
+python skills/audit-codex-token-routing/scripts/calibrate_codex_routing.py `
+  --current `
+  --ledger calibration-ledger.json `
+  --baseline calibration.json `
+  --json-out calibration-next.json `
+  --markdown-out calibration-next.md
+```
+
+The new snapshot includes per-agent deltas, route cohorts within the same task
+family, matched comparisons, and recommendation text such as “the accepted
+Luna-high route used approximately X% fewer estimated credits than Terra-medium.”
+Those statements remain exploratory until repeated equivalent trials exist.
+
+Use `--rate-card your-rates.json` to replace the embedded rate card when Codex
+pricing changes. Calibration never changes routing or configuration itself.
+
+You can also ask the root orchestrator:
+
+```text
+Use $audit-codex-token-routing to calibrate this task now. Generate a redacted
+scorecard and acceptance ledger, explain which fields require my judgment, and
+recommend only the next matched routing experiment. Do not change routing or
+configuration automatically.
+```
+
 ## What the report measures
 
 - Root input, cached input, output, and reasoning-output tokens.
@@ -113,6 +167,8 @@ This prints a recommendation. It does not apply it.
 - Spawn attempts, history-fork choices, compactions, and aborted turns.
 - Token usage associated with tool and coordination actions.
 - Tool-result volume and inter-agent metadata.
+- Per-agent and full-descendant calibration scorecards with optional acceptance
+  and rework evidence.
 
 These are local diagnostic records, not an invoice. Codex internals and schemas
 can change. Five-hour and weekly allowance behavior can also depend on model,
@@ -139,7 +195,7 @@ A promising pattern for large, QA-heavy workloads is:
 ```text
 Sol-high control agent
   -> Terra-high manager for one bounded package
-       -> 2-4 Luna workers with crisp tasks
+       -> 2 Luna workers by default; up to 4 only with verified capacity
        -> Terra validates and allows at most one rework round
   -> Terra returns a compact evidence packet
   -> Sol performs final decision/integration
@@ -178,6 +234,7 @@ skills/audit-codex-token-routing/
   SKILL.md
   agents/openai.yaml
   scripts/analyze_codex_tokens.py
+  scripts/calibrate_codex_routing.py
   scripts/route_task.py
   references/routing-policy.md
   references/hierarchical-routing.md

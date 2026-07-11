@@ -48,6 +48,20 @@ Treat these as local test thresholds, not product limits:
 
 Compare these thresholds with the user's own success and usage data.
 
+## Calibration loop
+
+At a meaningful phase boundary—not after every tool call:
+
+1. Capture a redacted calibration snapshot.
+2. Record acceptance, rework, and defects in the explicit ledger.
+3. Group only equivalent task families and matched pairs.
+4. Compare estimated credits per accepted task, duration, rework, and defects.
+5. Change one routing axis and rerun the same rubric.
+6. Keep recommendations exploratory until repeated matched trials support them.
+
+Automatic additional-turn counts are rework proxies only. The ledger is the
+authority for actual acceptance and rework.
+
 ## Recommendation format
 
 Return:
