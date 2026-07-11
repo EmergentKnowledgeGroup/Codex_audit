@@ -35,8 +35,11 @@ Read only `current-agent.json`, and only at a routing decision boundary:
 - at a phase boundary.
 
 Do not repeatedly ingest the Markdown, HTML, or full calibration JSON. Treat all
-signals as advisory. Quality-based route changes require explicit ledger data;
-never infer acceptance from task completion.
+signals as advisory. Always use the `working_hypothesis`, `comparison_status`,
+and `next_test` fields to form a provisional route opinion. Do not refuse to
+compare merely because quality is unassessed: report descriptive evidence and a
+testable hypothesis. Quality-based default promotion still requires explicit
+ledger data; never infer acceptance from task completion.
 
 ## User report
 
@@ -56,6 +59,9 @@ not expose a network server.
   `monitor-status.json`.
 - Treat `open_child_links` as durable graph state, not proof that a child is
   currently executing. Verify live agent state before changing fan-out.
+- `descriptive_only` and `baseline_only` are intentional working states, not
+  refusals. Use the hypothesis and next test to select one bounded experiment.
+  Reserve default promotion for `quality_gated` evidence.
 
 Codex lifecycle hooks may be offered as an optional user-approved optimization,
 but the portable polling mode remains the default.

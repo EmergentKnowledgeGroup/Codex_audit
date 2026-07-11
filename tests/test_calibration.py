@@ -123,6 +123,7 @@ class CalibrationTests(unittest.TestCase):
             runs, _ = CAL.make_runs(ROOT_ID, db, False, {}, CAL.DEFAULT_RATE_CARD)
             self.assertTrue(all(run["outcome"] == "not_assessed" for run in runs))
             self.assertEqual(CAL.build_pairs(runs), [])
+            self.assertIn("working hypothesis", CAL.recommendations([])[0].lower())
 
     def test_ledger_template_excludes_root_and_redacts(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -140,6 +141,17 @@ class CalibrationTests(unittest.TestCase):
         output = CAL.markdown(document)
         self.assertIn("# Codex routing calibration", output)
         self.assertIn("never inferred", output)
+
+    def test_working_hypothesis_exists_without_quality_ledger(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = fixture(Path(tmp))
+            runs, _ = CAL.make_runs(ROOT_ID, db, False, {}, CAL.DEFAULT_RATE_CARD)
+            summary = CAL.build_route_summary(runs)
+            hypothesis = CAL.working_hypothesis(runs, [], summary)
+            self.assertEqual(hypothesis["status"], "descriptive_only")
+            self.assertEqual(hypothesis["confidence"], "low")
+            self.assertIn("provisional efficiency candidate", hypothesis["hypothesis"])
+            self.assertIn("matched", hypothesis["next_test"])
 
     def test_db_columns_rejects_unexpected_identifier(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -63,7 +63,14 @@ def compact(document: dict) -> dict:
         alerts.append(
             f"{open_links} durable child links remain open; verify live agent state before more fan-out."
         )
-    recs = list(document.get("recommendations", []))[:3]
+    hypothesis = document.get("working_hypothesis", {})
+    recs = list(document.get("recommendations", []))
+    if hypothesis.get("hypothesis"):
+        recs.insert(
+            0,
+            f"Working hypothesis ({hypothesis.get('confidence', 'unknown')} confidence): {hypothesis['hypothesis']} Next test: {hypothesis.get('next_test', 'not specified')}",
+        )
+    recs = recs[:3]
     return {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -79,6 +86,12 @@ def compact(document: dict) -> dict:
         "compactions": compactions,
         "alerts": alerts,
         "recommended_actions": recs,
+        "comparison_status": hypothesis.get("status", "unknown"),
+        "comparison_confidence": hypothesis.get("confidence", "unknown"),
+        "working_hypothesis": hypothesis.get("hypothesis", "Not available."),
+        "next_test": hypothesis.get("next_test", "Not available."),
+        "comparison_blockers": hypothesis.get("blockers", []),
+        "route_summary": document.get("route_summary", {}),
     }
 
 
@@ -99,7 +112,11 @@ def html_dashboard(doc: dict, snapshot: dict, refresh: int) -> str:
         "".join(f"<li>{escape(x)}</li>" for x in snapshot["alerts"])
         or "<li>No automatic warning threshold crossed.</li>"
     )
-    return f'''<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="{refresh}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex routing monitor</title><style>body{{font:16px system-ui;margin:2rem;max-width:1100px;background:#0d1117;color:#e6edf3}}.cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}}.card{{background:#161b22;padding:16px;border:1px solid #30363d;border-radius:8px}}table{{width:100%;border-collapse:collapse;margin-top:1rem}}th,td{{padding:9px;border-bottom:1px solid #30363d;text-align:left}}.bar{{height:12px;background:#3fb950;border-radius:6px}}small{{color:#8b949e}}</style></head><body><h1>Codex routing monitor</h1><small>Advisory, redacted, refreshed {escape(snapshot["generated_at"])}</small><div class="cards"><div class="card"><b>Health</b><br>{snapshot["health"]}</div><div class="card"><b>Agents</b><br>{snapshot["observed_agents"]} observed / {snapshot["open_child_links"]} open links</div><div class="card"><b>Gross tokens</b><br>{snapshot["gross_tokens"]:,}</div><div class="card"><b>Estimated credits</b><br>{snapshot["estimated_credits"]:.3f}</div></div><h2>Signals</h2><ul>{alerts}</ul><h2>Usage by route</h2><table><thead><tr><th>Route</th><th>Runs</th><th>Tokens</th><th>Credits</th><th>Relative tokens</th></tr></thead><tbody>{bars}</tbody></table><h2>Recommendations</h2><ul>{"".join(f"<li>{escape(x)}</li>" for x in snapshot["recommended_actions"])}</ul></body></html>'''
+    blockers = (
+        "".join(f"<li>{escape(x)}</li>" for x in snapshot["comparison_blockers"])
+        or "<li>None recorded.</li>"
+    )
+    return f'''<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="{refresh}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex routing monitor</title><style>body{{font:16px system-ui;margin:2rem;max-width:1100px;background:#0d1117;color:#e6edf3}}.cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}}.card{{background:#161b22;padding:16px;border:1px solid #30363d;border-radius:8px}}table{{width:100%;border-collapse:collapse;margin-top:1rem}}th,td{{padding:9px;border-bottom:1px solid #30363d;text-align:left}}.bar{{height:12px;background:#3fb950;border-radius:6px}}small{{color:#8b949e}}</style></head><body><h1>Codex routing monitor</h1><small>Advisory, redacted, refreshed {escape(snapshot["generated_at"])}</small><div class="cards"><div class="card"><b>Health</b><br>{snapshot["health"]}</div><div class="card"><b>Agents</b><br>{snapshot["observed_agents"]} observed / {snapshot["open_child_links"]} open links</div><div class="card"><b>Gross tokens</b><br>{snapshot["gross_tokens"]:,}</div><div class="card"><b>Estimated credits</b><br>{snapshot["estimated_credits"]:.3f}</div></div><h2>Working hypothesis</h2><p><b>{escape(snapshot["comparison_status"])}</b> confidence: {escape(snapshot["comparison_confidence"])}</p><p>{escape(snapshot["working_hypothesis"])}</p><p><b>Next test:</b> {escape(snapshot["next_test"])}</p><ul>{blockers}</ul><h2>Signals</h2><ul>{alerts}</ul><h2>Usage by route</h2><table><thead><tr><th>Route</th><th>Runs</th><th>Tokens</th><th>Credits</th><th>Relative tokens</th></tr></thead><tbody>{bars}</tbody></table><h2>Recommendations</h2><ul>{"".join(f"<li>{escape(x)}</li>" for x in snapshot["recommended_actions"])}</ul></body></html>'''
 
 
 def collect(args) -> tuple[dict, dict, set[Path]]:
@@ -126,7 +143,11 @@ def collect(args) -> tuple[dict, dict, set[Path]]:
         "cohorts": CAL.build_cohorts(runs),
         "paired_comparisons": CAL.build_pairs(runs),
     }
+    doc["route_summary"] = CAL.build_route_summary(runs)
     doc["recommendations"] = CAL.recommendations(doc["paired_comparisons"])
+    doc["working_hypothesis"] = CAL.working_hypothesis(
+        runs, doc["paired_comparisons"], doc["route_summary"]
+    )
     return doc, compact(doc), protected
 
 

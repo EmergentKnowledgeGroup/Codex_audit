@@ -40,6 +40,9 @@ class MonitorTests(unittest.TestCase):
         self.assertEqual(snap["open_child_links"], 1)
         self.assertEqual(snap["assessed_agents"], 1)
         self.assertEqual(snap["health"], "warning")
+        self.assertIn("comparison_status", snap)
+        self.assertIn("working_hypothesis", snap)
+        self.assertIn("next_test", snap)
         self.assertNotIn("runs", snap)
         self.assertLess(len(json.dumps(snap)), 2000)
 

@@ -271,6 +271,30 @@ def build_cohorts(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return cohorts
 
 
+def build_route_summary(runs: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Summarize observed route cost; this is descriptive, not causal."""
+    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for run in runs:
+        groups[run["route"]].append(run)
+    summary: dict[str, dict[str, Any]] = {}
+    for route, items in sorted(groups.items()):
+        credits = [float(item["estimated_credits"]) for item in items if item.get("estimated_credits") is not None]
+        summary[route] = {
+            "runs": len(items),
+            "gross_tokens": sum(int(item.get("gross_total_tokens", 0)) for item in items),
+            "estimated_credits": round(sum(credits), 6) if credits else None,
+            "median_credits_per_run": median(credits),
+            "assessed_runs": sum(item.get("outcome") != "not_assessed" for item in items),
+            "clean_accepted_runs": sum(
+                item.get("outcome") == "accepted"
+                and item.get("defects") == 0
+                and item.get("rework_rounds") == 0
+                for item in items
+            ),
+        }
+    return summary
+
+
 def build_pairs(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     pairs: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for run in runs:
@@ -317,7 +341,58 @@ def recommendations(comparisons: list[dict[str, Any]]) -> list[str]:
                 if worst["estimated_credits"] > 0:
                     saving = round((worst["estimated_credits"] - best["estimated_credits"]) / worst["estimated_credits"] * 100, 1)
                     notes.append(f"{comparison['task_family']} / {comparison['pair_id']}: {best['route']} was accepted with approximately {saving}% fewer estimated credits than {worst['route']}; repeat matched trials before changing defaults.")
-    return notes or ["No assessed matched comparison supports a routing change yet. Fill the acceptance ledger and collect equivalent pairs."]
+    return notes or [
+        "No quality-gated route promotion yet; use the working hypothesis and run its next matched test before changing a default."
+    ]
+
+
+def working_hypothesis(runs: list[dict[str, Any]], comparisons: list[dict[str, Any]],
+                       route_stats: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Return a testable hypothesis even when quality evidence is incomplete."""
+    clean_routes = [comparison.get("lowest_credit_clean_route") for comparison in comparisons
+                    if comparison.get("lowest_credit_clean_route")]
+    if clean_routes:
+        route = clean_routes[0]
+        return {
+            "status": "quality_gated",
+            "confidence": "medium",
+            "hypothesis": f"{route} is the current clean-route candidate for at least one matched task family.",
+            "next_test": "Repeat the same task family with the current candidate and its nearest alternative before changing a default.",
+            "blockers": ["matched trials are still exploratory; do not treat one pair as a universal default"],
+        }
+    if len(route_stats) >= 2:
+        ranked = [
+            (route, stats["median_credits_per_run"])
+            for route, stats in route_stats.items()
+            if stats.get("median_credits_per_run") is not None
+        ]
+        ranked.sort(key=lambda item: item[1])
+        if len(ranked) >= 2:
+            candidate, candidate_cost = ranked[0]
+            alternative, alternative_cost = ranked[1]
+            return {
+                "status": "descriptive_only",
+                "confidence": "low",
+                "hypothesis": f"Observed costs make {candidate} the provisional efficiency candidate versus {alternative} ({candidate_cost:.4f} vs {alternative_cost:.4f} estimated credits per run).",
+                "next_test": f"Run a matched {candidate} versus {alternative} task with the same task family, prompt, rubric, and repository revision; record acceptance and rework.",
+                "blockers": ["route assignments may reflect different task difficulty", "quality is not assessed for all observed runs"],
+            }
+    if len(route_stats) == 1:
+        route = next(iter(route_stats))
+        return {
+            "status": "baseline_only",
+            "confidence": "low",
+            "hypothesis": f"{route} is the observed baseline; there is not yet a route contrast in this task tree.",
+            "next_test": "Run one equivalent package on the nearest cheaper or stronger candidate route and record the outcome.",
+            "blockers": ["no alternative route observed", "quality is not assessed"],
+        }
+    return {
+        "status": "no_data",
+        "confidence": "none",
+        "hypothesis": "There is not enough telemetry to form a route hypothesis.",
+        "next_test": "Allow one bounded worker to complete, then refresh the monitor.",
+        "blockers": ["no route observations"],
+    }
 
 
 def ledger_template(runs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -337,6 +412,11 @@ def markdown(document: dict[str, Any]) -> str:
              f"- Runs assessed in ledger: {sum(run['outcome'] != 'not_assessed' for run in document['runs'])}",
              f"- Matched comparisons: {len(document['paired_comparisons'])}",
              f"- Rate card effective date: {document['rate_card']['effective_date']}", "",
+             "## Working hypothesis", "",
+             f"- Status: {document.get('working_hypothesis', {}).get('status', 'unknown')}",
+             f"- Confidence: {document.get('working_hypothesis', {}).get('confidence', 'unknown')}",
+             f"- Hypothesis: {document.get('working_hypothesis', {}).get('hypothesis', 'Not available.')}",
+             f"- Next test: {document.get('working_hypothesis', {}).get('next_test', 'Not available.')}", "",
              "## Per-agent scorecard", "",
              "| Agent | Depth | Route | Gross tokens | Delta tokens | Est. credits | Delta credits | Duration | Coord. tokens | Compactions | Turns+ | Rework | Outcome |",
              "|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
@@ -415,7 +495,11 @@ def main() -> None:
                     "recommendation_only": True, "root_ref": ref(root_id, args.include_identifiers),
                     "rate_card": rate_card, "runs": runs, "cohorts": build_cohorts(runs),
                     "paired_comparisons": build_pairs(runs)}
+        document["route_summary"] = build_route_summary(runs)
         document["recommendations"] = recommendations(document["paired_comparisons"])
+        document["working_hypothesis"] = working_hypothesis(
+            runs, document["paired_comparisons"], document["route_summary"]
+        )
         rendered_json = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
         rendered_md = markdown(document)
         outputs = [path.expanduser().resolve() for path in

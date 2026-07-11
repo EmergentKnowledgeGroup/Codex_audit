@@ -90,7 +90,11 @@ For long-running work, start `monitor-codex-token-routing` once when installed.
 Read its compact `current-agent.json` only before fan-out, after an agent stops,
 before retry/escalation, after compaction, and at phase boundaries. Do not
 ingest its full Markdown/HTML report into orchestrator context, and do not apply
-monitor recommendations automatically.
+monitor recommendations automatically. If `comparison_status` is
+`descriptive_only` or `baseline_only`, use `working_hypothesis` and `next_test`
+to choose the next bounded experiment; do not refuse to reason because quality
+is unassessed. If it is `quality_gated`, the clean-route candidate may inform a
+route change, but still preserve the user's acceptance bar and stop conditions.
 
 Read `references/manager-worker-contract.md` before using hierarchy.
 
