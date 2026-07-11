@@ -1,0 +1,4 @@
+interface:
+  display_name: "Live Codex Routing Monitor"
+  short_description: "Continuously show advisory Codex routing telemetry"
+  default_prompt: "Use $monitor-codex-token-routing to monitor this Codex task and generate live routing telemetry without changing configuration or agents."

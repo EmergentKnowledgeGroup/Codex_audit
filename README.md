@@ -11,6 +11,12 @@ compaction, and repeated cached input.
 It **does not** change your model, edit `config.toml` or `AGENTS.md`, modify your
 codebase, close agents, or enforce a routing policy. You review every proposal.
 
+The repository contains three installable skills:
+
+- **Audit** (`audit-codex-token-routing`) diagnoses usage and calibrates routes.
+- **Orchestrate** (`efficient-codex-orchestrator`) delegates with explicit model, effort, scope, and QA contracts.
+- **Monitor** (`monitor-codex-token-routing`) continuously refreshes compact agent signals and live human reports.
+
 ## Why this exists
 
 Long agentic tasks can consume far more usage than their final answer suggests.
@@ -158,6 +164,28 @@ scorecard and acceptance ledger, explain which fields require my judgment, and
 recommend only the next matched routing experiment. Do not change routing or
 configuration automatically.
 ```
+
+## Monitor a long-running task continuously
+
+```text
+Use $monitor-codex-token-routing to monitor this task in the background. Keep
+the output redacted and advisory. Read only the compact agent snapshot at
+routing decision boundaries, and show me the human report or dashboard when I
+ask.
+```
+
+Or run it directly:
+
+```powershell
+python skills/monitor-codex-token-routing/scripts/monitor_codex_routing.py `
+  --current `
+  --output-dir runtime/codex-routing
+```
+
+It atomically refreshes `current-agent.json`, `current-report.md`,
+`dashboard.html`, `calibration.json`, and `monitor-status.json`. The dashboard
+self-refreshes locally; it starts no server and uploads no telemetry. Stop with
+Ctrl-C. Use `--once` to test without leaving a watcher running.
 
 ## What the report measures
 

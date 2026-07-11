@@ -55,6 +55,12 @@ the root scorecard once at the phase boundary; do not poll metrics after every c
 accepted/rework/rejected outcomes into its ledger, then adjust one routing axis
 only when matched evidence supports it.
 
+For long-running work, start `monitor-codex-token-routing` once when installed.
+Read its compact `current-agent.json` only before fan-out, after an agent stops,
+before retry/escalation, after compaction, and at phase boundaries. Do not
+ingest its full Markdown/HTML report into orchestrator context, and do not apply
+monitor recommendations automatically.
+
 Read `references/manager-worker-contract.md` before using hierarchy.
 
 ## Stop rules
