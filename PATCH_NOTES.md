@@ -1,5 +1,23 @@
 # Codex Audit patch notes
 
+## 2026-08-02 — Luna v2 activation and Sol-led orchestration
+
+- Added an opt-in, rollback-safe guide for exposing Luna to native multi-agent
+  v2 through a validated custom model catalog.
+- Added a Sol-led senior mode: Sol-low for routine orchestration and delegation;
+  Sol-high/xhigh for initial specs/docs, senior advice, broad QA, and hard or
+  high-blast-radius decisions.
+- Routed direct focused code/adjustment packages to Luna-xhigh, lower-level
+  interpreted problems to Terra-medium, and deeper issues to Terra-high/xhigh.
+- Added native lifecycle and nested-spawn proof gates. CLI success alone is not
+  treated as proof that Codex Desktop accepted Luna for native v2.
+
+### Validation
+
+- 31 unit tests passing.
+- Efficient orchestrator skill validation and `git diff --check` passing.
+- Independent Sol-low policy QA: GO after rollback and capability-proof fixes.
+
 ## 2026-07-11 — calibration, live monitoring, and center-out routing
 
 This release adds the complete calibration and live-monitoring workflow for

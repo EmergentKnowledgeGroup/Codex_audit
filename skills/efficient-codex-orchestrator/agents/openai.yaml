@@ -1,4 +1,4 @@
 interface:
   display_name: "Efficient Codex Orchestrator"
-  short_description: "Route bounded work through efficient agent layers"
-  default_prompt: "Use $efficient-codex-orchestrator to choose and run the smallest effective single-agent, direct-worker, or Sol-Terra-Luna workflow for this task."
+  short_description: "Route work through Sol, Terra, and Luna by role"
+  default_prompt: "Use $efficient-codex-orchestrator to choose the smallest effective root-only, Sol-led senior, Terra problem-solving, or Luna-focused execution workflow for this task."

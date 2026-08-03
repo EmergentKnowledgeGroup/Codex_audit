@@ -216,17 +216,30 @@ The skill must inspect the user's actual task and codebase before recommending:
 It must explain uncertainty and offer the smallest reversible experiment first.
 It must never silently edit global instructions or model configuration.
 
+## Enable Luna for native v2
+
+Some Codex builds expose Luna to the CLI but filter it from native multi-agent
+v2. The orchestrator includes an advanced, opt-in custom-catalog procedure with
+schema validation, restart requirements, and an end-to-end native lifecycle
+probe. Read [Enable Luna for native multi-agent v2](skills/efficient-codex-orchestrator/references/enable-luna-v2.md).
+
+The repository never applies this global configuration automatically. Catalog
+formats can change between Codex releases; obtain explicit user authorization
+and validate the custom catalog before restarting.
+
 ## Experimental hierarchical routing
 
-A promising center-out pattern for spec-gated, QA-heavy workloads is:
+A Sol-led alternative for planning-heavy, QA-heavy, or higher-blast-radius work
+is:
 
 ```text
-Luna-xhigh control agent
-  -> Terra-high manager only when scope/reconciliation/meaningful QA needs judgment
-       -> 2 Luna workers by default; up to 4 only with verified capacity
-       -> Terra validates and allows at most one rework round
-  -> Sol-low performs judgment-oriented QA when needed
-  -> Sol-high handles material architecture, security, release, or conflicting evidence
+Sol-low control agent for routine planning, delegation, and decisions
+  -> Luna-xhigh handles one direct focused code/adjustment package
+  -> Terra-medium handles lower-level interpreted problems
+  -> Terra-high/xhigh handles deeper tracing and reconciliation
+  -> Sol-low performs small judgment-oriented QA
+  -> Sol-high/xhigh authors initial specs/docs, advises lower agents, and owns hard,
+     large, high-blast-radius, architecture, security, release, or broad-QA decisions
 ```
 
 This can reduce **weighted credit usage** even when it increases raw tokens,
@@ -269,6 +282,7 @@ skills/audit-codex-token-routing/
   references/hierarchical-routing.md
 skills/efficient-codex-orchestrator/
   SKILL.md
+  references/enable-luna-v2.md
   references/manager-worker-contract.md
 examples/agents/luna-controller.toml
 skills/monitor-codex-token-routing/
