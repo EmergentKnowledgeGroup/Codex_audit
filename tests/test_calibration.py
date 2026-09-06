@@ -83,7 +83,7 @@ class CalibrationTests(unittest.TestCase):
 
     def test_gpt_56_alias_uses_sol_rate(self):
         usage = {"input_tokens": 1000, "cached_input_tokens": 0, "output_tokens": 0}
-        self.assertEqual(CAL.credit_estimate(usage, "gpt-5.6", CAL.DEFAULT_RATE_CARD), 0.125)
+        self.assertEqual(CAL.credit_estimate(usage, "gpt-5.6", CAL.DEFAULT_RATE_CARD), 0.1)
 
     def test_tree_metrics_ledger_and_pair_recommendation(self):
         with tempfile.TemporaryDirectory() as tmp:

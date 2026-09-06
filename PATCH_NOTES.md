@@ -1,5 +1,12 @@
 # Codex Audit patch notes
 
+## 2026-09-05 — Astra usage windows and visual reports
+
+- Added frozen-window, per-chat/model/effort usage audits with parent-tree rollups.
+- Added offline HTML dashboards and Markdown/JSON reports with cache and credit breakdowns.
+- Updated standard-rate estimates and documented subscription, service-tier, and attribution limits.
+- Added regression coverage for modern and legacy usage records and window boundaries.
+
 ## 2026-08-02 — Luna v2 activation and Sol-led orchestration
 
 - Added an opt-in, rollback-safe guide for exposing Luna to native multi-agent

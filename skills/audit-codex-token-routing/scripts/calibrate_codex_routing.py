@@ -24,12 +24,14 @@ assert SPEC.loader
 SPEC.loader.exec_module(AUDIT)
 
 DEFAULT_RATE_CARD = {
-    "effective_date": "2026-07-10",
+    "effective_date": "2026-09-05",
+    "basis": "Current standard-rate estimate, not historical billing or plan percentage",
     "source": "https://learn.chatgpt.com/docs/pricing#what-are-tokens-and-credits",
     "credits_per_million": {
-        "gpt-5.6-sol": {"input": 125.0, "cached_input": 12.5, "output": 750.0},
-        "gpt-5.6-terra": {"input": 62.5, "cached_input": 6.25, "output": 375.0},
-        "gpt-5.6-luna": {"input": 25.0, "cached_input": 2.5, "output": 150.0},
+        "gpt-6-astra": {"input": 250.0, "cached_input": 25.0, "output": 1250.0},
+        "gpt-5.6-sol": {"input": 100.0, "cached_input": 10.0, "output": 500.0},
+        "gpt-5.6-terra": {"input": 50.0, "cached_input": 5.0, "output": 300.0},
+        "gpt-5.6-luna": {"input": 5.0, "cached_input": .5, "output": 30.0},
         "gpt-5.5": {"input": 125.0, "cached_input": 12.5, "output": 750.0},
     },
 }

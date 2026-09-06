@@ -19,6 +19,14 @@ The repository contains three installable skills:
 
 ## Why this exists
 
+### Astra usage reports
+
+Ask Codex: “Use audit-codex-token-routing to audit my last 24 hours by chat,
+model, and effort, with a visual report and recommendations.” The analyzer
+produces offline HTML, Markdown, and JSON reports. Standard-rate credit
+estimates are not your subscription bill or a conversion to allowance usage.
+See [Astra audit update](ASTRA_AUDIT_UPDATE.md) for usage and limitations.
+
 Long agentic tasks can consume far more usage than their final answer suggests.
 The expensive part is often not prose; it is repeatedly sending large
 conversation history, tool results, and agent coordination back through a
